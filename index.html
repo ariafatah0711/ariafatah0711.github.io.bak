@@ -136,8 +136,8 @@
                 const listItem = document.createElement("li");
                 const link = document.createElement("a");
 
-                // Buat link GitHub Pages
-                link.href = `https://github.com/${repoName}`;
+                // Gunakan path relatif untuk mengarahkan ke repositori lokal
+                link.href = `./${repoName}`; // Ganti URL dengan path relatif
                 link.textContent = repoName;
                 link.target = "_blank"; // Buka di tab baru
 
