@@ -5,16 +5,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GITHUB ARIA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        ul#repo-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        ul#repo-list li {
+            background-color: #fff;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        ul#repo-list li:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        ul#repo-list li a {
+            color: #4CAF50;
+            font-size: 18px;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        ul#repo-list li a:hover {
+            color: #2c6b2f;
+        }
+
+        /* Loading Spinner */
+        #repo-list.loading::after {
+            content: 'Loading...';
+            display: block;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #888;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>GITHUB ARIA</h1>
-    <ul id="repo-list"></ul>
+    <div>
+        <h1>GitHub Repositories of Aria</h1>
+        <ul id="repo-list" class="loading"></ul>
+    </div>
 
     <script>
         async function getReposWithIndexHtml(username) {
             const HEADERS = {}; // Biarkan kosong jika tanpa token
             const repoList = document.getElementById("repo-list");
+
+            // Periksa apakah data repositori sudah ada di localStorage
+            const cachedRepos = localStorage.getItem(`repos_${username}`);
+            if (cachedRepos) {
+                // Jika ada cache, langsung tampilkan daftar repositori dari cache
+                displayRepos(JSON.parse(cachedRepos));
+                return;
+            }
 
             try {
                 // Fetch daftar repositori
@@ -25,6 +97,7 @@
 
                 const reposWithIndexHtml = [];
 
+                // Cek setiap repositori untuk melihat apakah memiliki index.html
                 for (const repo of repos) {
                     const { name, owner } = repo;
                     const contentsUrl = `https://api.github.com/repos/${owner.login}/${name}/contents/index.html`;
@@ -41,22 +114,36 @@
                     }
                 }
 
+                // Simpan data repositori yang sudah diperoleh ke localStorage
+                localStorage.setItem(`repos_${username}`, JSON.stringify(reposWithIndexHtml));
+
                 // Tampilkan repositori dengan link ke halaman
-                reposWithIndexHtml.forEach(repoName => {
-                    const listItem = document.createElement("li");
-                    const link = document.createElement("a");
+                displayRepos(reposWithIndexHtml);
 
-                    // Buat link GitHub Pages
-                    link.href = `./${repoName}`;
-                    link.textContent = repoName;
-                    link.target = "_blank"; // Buka di tab baru
-
-                    listItem.appendChild(link);
-                    repoList.appendChild(listItem);
-                });
             } catch (error) {
                 console.error("Error fetching repos:", error);
             }
+        }
+
+        function displayRepos(reposWithIndexHtml) {
+            const repoList = document.getElementById("repo-list");
+
+            // Hapus status loading setelah repositori ditampilkan
+            repoList.classList.remove("loading");
+
+            // Tampilkan repositori dengan link ke halaman
+            reposWithIndexHtml.forEach(repoName => {
+                const listItem = document.createElement("li");
+                const link = document.createElement("a");
+
+                // Buat link GitHub Pages
+                link.href = `https://github.com/${repoName}`;
+                link.textContent = repoName;
+                link.target = "_blank"; // Buka di tab baru
+
+                listItem.appendChild(link);
+                repoList.appendChild(listItem);
+            });
         }
 
         // Ganti 'username' dengan nama pengguna GitHub Anda
