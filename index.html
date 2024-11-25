@@ -9,6 +9,59 @@
 
 <body>
     <h1>GITHUB ARIA</h1>
+    <ul id="repo-list"></ul>
+
+    <script>
+        async function getReposWithIndexHtml(username) {
+            const HEADERS = {}; // Biarkan kosong jika tanpa token
+            const repoList = document.getElementById("repo-list");
+
+            try {
+                // Fetch daftar repositori
+                const reposResponse = await fetch(`https://api.github.com/users/${username}/repos`, {
+                    headers: HEADERS
+                });
+                const repos = await reposResponse.json();
+
+                const reposWithIndexHtml = [];
+
+                for (const repo of repos) {
+                    const { name, owner } = repo;
+                    const contentsUrl = `https://api.github.com/repos/${owner.login}/${name}/contents/index.html`;
+
+                    try {
+                        const contentResponse = await fetch(contentsUrl, { headers: HEADERS });
+
+                        // Jika status 200, file index.html ada
+                        if (contentResponse.status === 200) {
+                            reposWithIndexHtml.push(name);
+                        }
+                    } catch (err) {
+                        console.error(`Error checking ${name}:`, err);
+                    }
+                }
+
+                // Tampilkan repositori dengan link ke halaman
+                reposWithIndexHtml.forEach(repoName => {
+                    const listItem = document.createElement("li");
+                    const link = document.createElement("a");
+
+                    // Buat link GitHub Pages
+                    link.href = `./${repoName}`;
+                    link.textContent = repoName;
+                    link.target = "_blank"; // Buka di tab baru
+
+                    listItem.appendChild(link);
+                    repoList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error("Error fetching repos:", error);
+            }
+        }
+
+        // Ganti 'username' dengan nama pengguna GitHub Anda
+        getReposWithIndexHtml("ariafatah0711");
+    </script>
 </body>
 
 </html>
